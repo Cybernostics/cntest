@@ -13,12 +13,20 @@ func ExecuteWithRunningDB(t *testing.T, c *DBContainer, userTestFn DBTestFn) {
 	if err != nil {
 		t.Fatalf("Couldn't start container %v", err)
 	}
-	// db.AwaitLogPattern(30, "eady to")
-	db.AwaitStartup(30)
+	db.AwaitIsRunning(c.MaxStartTimeSeconds)
 	if c.StopAfterTest {
 		defer func() {
-			db.Stop(30)
-			db.Remove()
+			_, err := db.Stop(10)
+			if err != nil {
+				t.Errorf("Couldn't stop container: %s\n Error was %v", db.Instance.ID, err)
+			}
+
+			if c.RemoveAfterTest {
+				err = db.Remove()
+				if err != nil {
+					t.Errorf("Couldn't stop container: %s\n Error was %v", db.Instance.ID, err)
+				}
+			}
 		}()
 	}
 

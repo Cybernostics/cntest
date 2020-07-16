@@ -2,11 +2,12 @@ package mysql
 
 import (
 	"fmt"
-
+	// register the mysql driver
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/wjase/dbcontainers"
 )
 
-//ForMySQL configures a MysqlHost and connection string
+//ForMySQL A configurer which configures a MysqlHost and connection string
 func Apply(c *dbcontainers.DBContainer) *dbcontainers.DBContainer {
 
 	env := map[string]string{

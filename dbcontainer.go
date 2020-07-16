@@ -16,14 +16,18 @@ import (
 var seed = time.Now().UTC().UnixNano()
 var nameMaker = namegenerator.NewNameGenerator(seed)
 
+// ConnectionStringFn overridden for each db type
 type ConnectionStringFn func() string
 
+// Configurer function for configuring the DBContainer
 type Configurer func(config *DBContainer) *DBContainer
 
-//TestDBConfig contains the params for creating a new test db container
+//DBContainer contains the params for creating a new test db container
 type DBContainer struct {
 	// will stop and remove the container after testing
 	StopAfterTest bool
+	// RemoveAfterTest remove the container after the test
+	RemoveAfterTest bool
 	// The docker image to use for the container
 	DockerImage string
 	// If not blank this is used to map to /docker-entrypoint-initdb.d/
@@ -58,6 +62,7 @@ func NewDBContainer() *DBContainer {
 	cfg.Password = randomName()
 	cfg.DatabaseName = randomName()
 	cfg.StopAfterTest = true
+	cfg.RemoveAfterTest = true
 	return cfg
 }
 
@@ -65,6 +70,7 @@ func randomName() string {
 	return strings.Replace(nameMaker.Generate(), "-", "", 1)
 }
 
+// Start the docker container
 func (c *DBContainer) Start() (*docker.Container, error) {
 	dc := docker.NewContainer(c.DockerImage)
 	dc.AddPathMap(docker.VolumeMount{Host: docker.HostPath(c.SchemaFolder), Container: docker.ContainerPath("/docker-entrypoint-initdb.d")})
@@ -79,7 +85,7 @@ func (c *DBContainer) Start() (*docker.Container, error) {
 		return nil, err
 	}
 	c.IP = ip
-	_, err = wait.UntilTrue(30, c.CanConnect)
+	_, err = wait.UntilTrue(c.MaxStartTimeSeconds, c.CanConnect)
 	if err != nil {
 		fmt.Printf("Failed to reach container on startup. Forcing stop")
 		dc.Stop(5)
@@ -88,8 +94,8 @@ func (c *DBContainer) Start() (*docker.Container, error) {
 	return dc, nil
 }
 
+// CanConnect tries to ping a db connection to confirm it is ready to accept connections
 func (c *DBContainer) CanConnect() (bool, error) {
-	fmt.Printf("Trying to connect to db -> %s\n", c.ConnectionStringFn())
 	db, err := sql.Open(c.DriverType, c.ConnectionStringFn())
 
 	// if there is an error opening the connection, handle it
@@ -111,7 +117,7 @@ func (c *DBContainer) CanConnect() (bool, error) {
 	return true, nil
 }
 
-// WithSchemaFolder - maps to /docker-entrypoint-initdb.d/ in the container
+// ContainerName returns the generated name for the container
 func (c *DBContainer) ContainerName() string {
 	if len(c.name) == 0 {
 		c.name = c.DriverType + "-" + randomName()
@@ -134,66 +140,76 @@ func (c *DBContainer) WithSchemaFolder(schemaFolder string) *DBContainer {
 	return c
 }
 
-// WithDriverType - TODO
+// WithDriverType - string to specify the db driver type
 func (c *DBContainer) WithDriverType(driverType string) *DBContainer {
 	c.DriverType = driverType
 	return c
 }
 
-// WithStopAfterTest - TODO
+// WithStopAfterTest - if true the container is stopped after the test
+// (temporarily set to false when looping round tests)
 func (c *DBContainer) WithStopAfterTest(stopAfterTest bool) *DBContainer {
 	c.StopAfterTest = stopAfterTest
 	return c
 }
 
-// WithPort - TODO
+// WithRemoveAfterTest - if true the container is removed after the test
+// (implies stop after test if true)
+func (c *DBContainer) WithRemoveAfterTest(removeAfterTest bool) *DBContainer {
+	c.RemoveAfterTest = removeAfterTest
+	return c
+}
+
+// WithPort - specify the DB port to use
 func (c *DBContainer) WithPort(port string) *DBContainer {
 	c.Port = port
 	return c
 }
 
-// WithDockerImage - TODO
+// WithDockerImage - specify the docker image to use
 func (c *DBContainer) WithDockerImage(image string) *DBContainer {
 	c.DockerImage = image
 	return c
 }
 
-// WithDatabaseName - TODO
+// WithDatabaseName - specify the DB name to create in the container
 func (c *DBContainer) WithDatabaseName(databaseName string) *DBContainer {
 	c.DatabaseName = databaseName
 	return c
 }
 
-// WithUser - TODO
+// WithUser - username to use to contact the DB
 func (c *DBContainer) WithUser(user string) *DBContainer {
 	c.User = user
 	return c
 }
 
-// WithPassword - TODO
+// WithPassword - password to access the database
 func (c *DBContainer) WithPassword(password string) *DBContainer {
 	c.Password = password
 	return c
 }
 
-// WithMaxStartTimeSeconds - TODO
+// WithMaxStartTimeSeconds - Wait at most this long for the database container to start
 func (c *DBContainer) WithMaxStartTimeSeconds(maxStartTimeSeconds int) *DBContainer {
 	c.MaxStartTimeSeconds = maxStartTimeSeconds
 	return c
 }
 
-// WithContainerName - TODO
+// WithContainerName - The name of the container once created.
+// If not specified a random one is generated.
 func (c *DBContainer) WithContainerName(containerName string) *DBContainer {
 	c.name = containerName
 	return c
 }
 
-// WithEnvironment - TODO
+// WithEnvironment - map of environment settings
 func (c *DBContainer) WithEnvironment(environment map[string]string) *DBContainer {
 	c.Environment = environment
 	return c
 }
 
+// WithConfigurer - Allows you to extend the configuration of containers or use one of the prepaked ones
 func (c *DBContainer) WithConfigurer(fn Configurer) *DBContainer {
 	return fn(c)
 }
