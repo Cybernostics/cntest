@@ -1,6 +1,6 @@
 package examples
 
-// A sample DTO for DB records
+// Agent is a sample DTO for DB records.
 type Agent struct {
 	AgentCode   string `db:"agent_code"`
 	WorkingArea string `db:"working_area"`
