@@ -1,34 +1,37 @@
-package dbcontainers
+package cntest
 
 import (
 	"testing"
 )
 
-// DBTestFn implement your DB tests using this signature
-type DBTestFn func(t *testing.T, config *DBContainer)
+// ContainerMap is a type alias for a collection of containers
+type ContainerMap map[string]*Container
 
-// ExecuteWithRunningDB wraps a test function by creating a db
-func ExecuteWithRunningDB(t *testing.T, c *DBContainer, userTestFn DBTestFn) {
-	db, err := c.Start()
-	if err != nil {
-		t.Fatalf("Couldn't start container %v", err)
-	}
-	db.AwaitIsRunning(c.MaxStartTimeSeconds)
-	if c.StopAfterTest {
-		defer func() {
-			_, err := db.Stop(10)
-			if err != nil {
-				t.Errorf("Couldn't stop container: %s\n Error was %v", db.Instance.ID, err)
-			}
+// ContainerTestFn implement your container tests using this signature
+type ContainerTestFn func(t *testing.T, containers ContainerGroup)
 
-			if c.RemoveAfterTest {
-				err = db.Remove()
-				if err != nil {
-					t.Errorf("Couldn't stop container: %s\n Error was %v", db.Instance.ID, err)
-				}
-			}
-		}()
-	}
+// ExecuteWithRunningContainer wraps a test function by creating a container
+// for you to test and ensures it gets cleaned up in hte end
+func ExecuteWithRunningContainer(t *testing.T, cnts ContainerGroup, userTestFn ContainerTestFn) {
+	cnts.Start()
 
-	userTestFn(t, c)
+	cnts.Await()
+
+	userTestFn(t, cnts)
+	// if db.IsStopAfterTest() {
+	// 	defer func() {
+	// 		_, err := db.Stop(10)
+	// 		if err != nil {
+	// 			t.Errorf("Couldn't stop container: %s\n Error was %v", db.Instance.ID, err)
+	// 		}
+
+	// 		if c.IsRemoveAfterTest() {
+	// 			err = db.Remove()
+	// 			if err != nil {
+	// 				t.Errorf("Couldn't stop container: %s\n Error was %v", db.Instance.ID, err)
+	// 			}
+	// 		}
+	// 	}()
+	// }
+
 }

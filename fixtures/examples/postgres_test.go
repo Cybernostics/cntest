@@ -1,7 +1,6 @@
-package test
+package exmaples
 
 import (
-	"database/sql"
 	"fmt"
 	"testing"
 
@@ -9,10 +8,12 @@ import (
 	"github.com/corbym/gocrest/then"
 	"github.com/jmoiron/sqlx"
 
-	"github.com/wjase/dbcontainers"
-	"github.com/wjase/dbcontainers/postgres"
+	// import these to test a postgres container
+	"github.com/wjase/cntest"
+	"github.com/wjase/cntest/postgres"
 )
 
+// A sample DTO for DB records
 type Agent struct {
 	AgentCode   string `db:"agent_code"`
 	WorkingArea string `db:"working_area"`
@@ -23,47 +24,41 @@ type Agent struct {
 }
 
 func TestPostgresRunWith(t *testing.T) {
-	cnt := dbcontainers.
-		NewDBContainer().
-		WithConfigurer(postgres.Apply).
-		WithSchemaFolder("../testschema")
+	cnt := postgres.Container(cntest.PropertyMap{"sql": "../testschema"})
 
 	fmt.Printf("Cfg is %v", cnt)
-	dbcontainers.ExecuteWithRunningDB(t, cnt, func(t *testing.T, c *dbcontainers.DBContainer) {
+	cntest.ExecuteWithRunningDB(t, cnt, func(t *testing.T, c *cntest.Container) {
+
+		// Container has been created at this point and is ready
+		// to accept DB connections.
 		fmt.Printf("container : %s\n", c.ContainerName())
 
 		// Open up our database connection.
-		fmt.Printf("Connecting to %s", c.ConnectionStringFn())
-		db, err := sql.Open(c.DriverType, c.ConnectionStringFn())
+		db, err := c.DBConnect(c.MaxStartTimeSeconds)
 
 		// if there is an error opening the connection, handle it
 		if err != nil {
 			panic(err.Error())
 		}
 
-		// defer the close till after the main function has finished
+		// defer the close
 		// executing
 		defer db.Close()
 
 		err = db.Ping()
-		if err != nil {
-			panic(err.Error())
-		}
+		then.AssertThat(t, err, is.Nil())
 
 		var agents = []Agent{}
 
-		dbx := sqlx.NewDb(db, c.DriverType)
+		dbx := sqlx.NewDb(db, c.Props["driver"])
 		tx := dbx.MustBegin()
+		defer tx.Commit()
+
 		err = tx.Select(&agents, "select * from agents")
 		then.AssertThat(t, err, is.Nil())
 
-		if err == nil {
-			err = tx.Commit()
-		}
-
-		then.AssertThat(t, err, is.Nil())
 		for _, agent := range agents {
-			fmt.Printf("%v", agent)
+			fmt.Printf("%v\n", agent)
 		}
 
 	})
