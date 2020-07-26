@@ -17,7 +17,35 @@ configure them, and also this means that you can spin up multiple db hosts for e
 
 # Usage
 
-See examples/ for examples of tests for 
+```golang
+// from examples/mysql_test.go
+
+let generateProject = project => {
+  func TestMysqlRunWith(t *testing.T) {
+
+	// This sets up a mysql db server with all the bits randomised
+	// you can access them via cnt.Props map. see mysql.Container() method for details.
+	cnt := mysql.Container(cntest.PropertyMap{"sql": "../path/to/folder/containing/your/init/sql"})
+
+	// This wrapper method ensures the container is cleaned up after the test is done
+	cntest.ExecuteWithRunningContainer(t, cnt, func(t *testing.T, c *cntest.Container) {
+
+		// Open up our database connection.
+		db, err := c.DBConnect(c.MaxStartTimeSeconds)
+		// if err...
+		defer db.Close()
+
+		// example ping to check connection
+		err = db.Ping()
+		// if err...
+
+		// Use sql.db in your tests 
+
+	})
+}
+```
+
+See more examples/ for examples of tests for 
  * a hello world container
  * a mysql db
  * a postgres db
