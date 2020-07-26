@@ -6,11 +6,11 @@ import (
 
 	"github.com/corbym/gocrest/is"
 	"github.com/corbym/gocrest/then"
-	docker "github.com/wjase/cntest"
+	"github.com/cybernostics/cntest"
 )
 
 func TestContainer(t *testing.T) {
-	cnt := docker.NewContainer().WithImage("hello-world")
+	cnt := cntest.NewContainer().WithImage("hello-world")
 	name, err := cnt.Start()
 	defer cnt.Remove()
 	then.AssertThat(t, err, is.Nil())

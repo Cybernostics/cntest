@@ -8,8 +8,8 @@ import (
 	"github.com/corbym/gocrest/then"
 	"github.com/jmoiron/sqlx"
 
-	"github.com/wjase/cntest"
-	"github.com/wjase/cntest/mysql"
+	"github.com/cybernostics/cntest"
+	"github.com/cybernostics/cntest/mysql"
 )
 
 func TestMysqlRunWith(t *testing.T) {

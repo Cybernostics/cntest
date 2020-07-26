@@ -9,8 +9,8 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	// import these to test a postgres container
-	"github.com/wjase/cntest"
-	"github.com/wjase/cntest/postgres"
+	"github.com/cybernostics/cntest"
+	"github.com/cybernostics/cntest/postgres"
 )
 
 // A sample DTO for DB records

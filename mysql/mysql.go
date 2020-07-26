@@ -7,10 +7,10 @@ import (
 	"time"
 
 	// register the mysql driver
+	"github.com/cybernostics/cntest"
+	docker "github.com/cybernostics/cntest"
+	"github.com/cybernostics/cntest/random"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/wjase/cntest"
-	docker "github.com/wjase/cntest"
-	"github.com/wjase/cntest/random"
 	"golang.org/x/net/context"
 )
 

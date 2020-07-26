@@ -3,7 +3,7 @@ package exmaples
 import (
 	"testing"
 
-	"github.com/wjase/cntest"
+	"github.com/cybernostics/cntest"
 )
 
 // TestMain This magic function wraps all the other tests

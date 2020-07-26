@@ -8,10 +8,10 @@ import (
 	"time"
 
 	// register the mysql driver
+	"github.com/cybernostics/cntest"
+	docker "github.com/cybernostics/cntest"
+	"github.com/cybernostics/cntest/random"
 	_ "github.com/lib/pq"
-	"github.com/wjase/cntest"
-	docker "github.com/wjase/cntest"
-	"github.com/wjase/cntest/random"
 )
 
 // Container creates a mysql opinionated container with defaults overridden by the
