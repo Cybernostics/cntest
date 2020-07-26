@@ -16,7 +16,7 @@ import (
 func TestPostgresRunWith(t *testing.T) {
 	cnt := postgres.Container(cntest.PropertyMap{"sql": "../fixtures/testschema"})
 
-	cntest.ExecuteWithRunningDB(t, cnt, func(t *testing.T, c *cntest.Container) {
+	cntest.ExecuteWithRunningContainer(t, cnt, func(t *testing.T, c *cntest.Container) {
 
 		// Open up our database connection.
 		db, err := c.DBConnect(c.MaxStartTimeSeconds)

@@ -19,7 +19,7 @@ func TestMysqlRunWith(t *testing.T) {
 	cnt := mysql.Container(cntest.PropertyMap{"sql": "../fixtures/testschema"})
 
 	// This wrapper method ensures the container is cleaned up after the test is done
-	cntest.ExecuteWithRunningDB(t, cnt, func(t *testing.T, c *cntest.Container) {
+	cntest.ExecuteWithRunningContainer(t, cnt, func(t *testing.T, c *cntest.Container) {
 
 		// Open up our database connection.
 		db, err := c.DBConnect(c.MaxStartTimeSeconds)
