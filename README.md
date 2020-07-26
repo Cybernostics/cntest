@@ -17,7 +17,7 @@ configure them, and also this means that you can spin up multiple db hosts for e
 
 # Usage
 
-See fixtures/ for examples of tests for 
+See examples/ for examples of tests for 
  * a hello world container
  * a mysql db
  * a postgres db

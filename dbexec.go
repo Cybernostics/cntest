@@ -13,6 +13,13 @@ func ExecuteWithRunningDB(t *testing.T, c *Container, userTestFn DBTestFn) {
 	isOk := false
 	containerID, err := c.Start()
 	defer func() {
+		if err := recover(); err != nil {
+			fmt.Printf("Panic within ExecuteWithRunningDB. Error was: %v", err)
+			c.Stop(0)
+			c.Remove()
+		}
+	}()
+	defer func() {
 		if !isOk {
 			t.Errorf("Failed to run container.")
 			logsStr, err := c.Logs()

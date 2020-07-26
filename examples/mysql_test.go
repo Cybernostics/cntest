@@ -1,4 +1,4 @@
-package exmaples
+package examples
 
 import (
 	"fmt"
@@ -23,27 +23,18 @@ func TestMysqlRunWith(t *testing.T) {
 
 		// Open up our database connection.
 		db, err := c.DBConnect(c.MaxStartTimeSeconds)
-
-		// if there is an error opening the connection, handle it
-		if err != nil {
-			panic(err.Error())
-		}
-
-		// defer the close
+		then.AssertThat(t, err, is.Nil())
 		defer db.Close()
 
 		// example ping to check connection
 		err = db.Ping()
 		then.AssertThat(t, err, is.Nil())
 
-		// this is some sample db code using sqlx
-		var agents = []Agent{}
-
+		// Test some db code
 		dbx := sqlx.NewDb(db, c.Props["driver"])
-		tx := dbx.MustBegin()
-		defer tx.Commit()
 
-		err = tx.Select(&agents, "select * from agents")
+		store := AgentStore{dbx}
+		agents, err := store.GetAgents()
 		then.AssertThat(t, err, is.Nil())
 
 		for _, agent := range agents {
