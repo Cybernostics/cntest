@@ -9,8 +9,9 @@ import (
 
 	// register the mysql driver
 	"github.com/cybernostics/cntest"
-	docker "github.com/cybernostics/cntest"
 	"github.com/cybernostics/cntest/random"
+
+	// if you import the postgres test config you want to test postgres
 	_ "github.com/lib/pq"
 )
 
@@ -20,13 +21,13 @@ import (
 // dbuser - user name for the database. defaults to random
 // dbpass - user password for the database. defaults to random
 // sql - folder containing sh and sql files executed in lexical order when the container db starts
-func Container(props docker.PropertyMap) *cntest.Container {
+func Container(props cntest.PropertyMap) *cntest.Container {
 	return cntest.ContainerWith(Config(props))
 }
 
 // Config func to generate a configurer to use like this
 // cntest.NewContainer(mysql.Config({db:"mydb",sqlFolder:"./testdb",user:"bob"}))
-func Config(props docker.PropertyMap) func(*cntest.Container) error {
+func Config(props cntest.PropertyMap) func(*cntest.Container) error {
 	driver := "postgres"
 	props["driver"] = driver
 	dbName := props.GetOrDefault("db", random.Name())
@@ -48,7 +49,7 @@ func Config(props docker.PropertyMap) func(*cntest.Container) error {
 		cnt.WithImage("postgres")
 		cnt.SetAppPort("5432")
 		if sqlPath, ok := props["sql"]; ok {
-			cnt.AddPathMap(docker.HostPath(sqlPath), cntest.ContainerPath("/docker-entrypoint-initdb.d"))
+			cnt.AddPathMap(cntest.HostPath(sqlPath), cntest.ContainerPath("/docker-entrypoint-initdb.d"))
 		}
 		cnt.DBConnect = func(timeoutSeconds int) (*sql.DB, error) {
 			connStr := fmt.Sprintf("host=%s port=%s user=%s "+

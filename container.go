@@ -202,7 +202,7 @@ func FromDockerHub(image string, version string) string {
 	if version == "" {
 		version = "latest"
 	}
-	return fmt.Sprintf("docker.io/library/%s:%s", image, version)
+	return fmt.Sprintf("cntest.io/library/%s:%s", image, version)
 }
 
 // ContainerConfigFn custom function that configures a container
