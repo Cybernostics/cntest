@@ -16,7 +16,7 @@ func TestMysqlRunWith(t *testing.T) {
 
 	// This sets up a mysql db server with all the bits randomised
 	// you can access them via cnt.Props map. see mysql.Container() method for details.
-	cnt := mysql.Container(cntest.PropertyMap{"sql": "../testschema"})
+	cnt := mysql.Container(cntest.PropertyMap{"sql": "../fixtures/testschema"})
 
 	// This wrapper method ensures the container is cleaned up after the test is done
 	cntest.ExecuteWithRunningDB(t, cnt, func(t *testing.T, c *cntest.Container) {

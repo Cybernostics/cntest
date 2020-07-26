@@ -24,7 +24,7 @@ type Agent struct {
 }
 
 func TestPostgresRunWith(t *testing.T) {
-	cnt := postgres.Container(cntest.PropertyMap{"sql": "../testschema"})
+	cnt := postgres.Container(cntest.PropertyMap{"sql": "../fixtures/testschema"})
 
 	fmt.Printf("Cfg is %v", cnt)
 	cntest.ExecuteWithRunningDB(t, cnt, func(t *testing.T, c *cntest.Container) {

@@ -3,7 +3,7 @@
 [![Go Doc](https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square)](http://godoc.org/github.com/cybernostics/cntest)
 [![Release](https://img.shields.io/github/release/cybernostics/cntest.svg?style=flat-square)](https://github.com/cybernostics/cntest/releases/latest)
 
-Docker container-based testing easy.
+Docker container-based testing and db container testing made easy.
 
 ## Background
 CnTest Tries to take most of the boilerplate away in creating containers.

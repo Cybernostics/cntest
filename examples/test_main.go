@@ -10,8 +10,8 @@ import (
 // see https://golang.org/pkg/testing/ and the section on TestMain
 func TestMain(m *testing.M) {
 	// pull the image before you start testing so you don't blow your timeout
-	cntest.PullImage("mysql", "latest", cntest.FromcntestHub)
-	cntest.PullImage("postgres", "latest", cntest.FromcntestHub)
-	cntest.PullImage("hello-world", "latest", cntest.FromcntestHub)
+	cntest.PullImage("mysql", "latest", cntest.FromDockerHub)
+	cntest.PullImage("postgres", "latest", cntest.FromDockerHub)
+	cntest.PullImage("hello-world", "latest", cntest.FromDockerHub)
 	m.Run()
 }
