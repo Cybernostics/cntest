@@ -16,6 +16,7 @@ func TestContainer(t *testing.T) {
 	then.AssertThat(t, err, is.Nil())
 	then.AssertThat(t, len(name), is.GreaterThan(0))
 	ok, err := cnt.AwaitExit(10)
+	then.AssertThat(t, err, is.Nil())
 	then.AssertThat(t, ok, is.True())
 	logs, err := cnt.Logs()
 	then.AssertThat(t, err, is.Nil())
