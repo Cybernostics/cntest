@@ -25,7 +25,7 @@ let generateProject = project => {
 
 	// This sets up a mysql db server with all the bits randomised
 	// you can access them via cnt.Props map. see mysql.Container() method for details.
-	cnt := mysql.Container(cntest.PropertyMap{"sql": "../path/to/folder/containing/your/init/sql"})
+	cnt := mysql.Container(cntest.PropertyMap{"initdb_path": "../path/to/folder/containing/your/init/sql"})
 
 	// This wrapper method ensures the container is cleaned up after the test is done
 	cntest.ExecuteWithRunningContainer(t, cnt, func(t *testing.T, c *cntest.Container) {

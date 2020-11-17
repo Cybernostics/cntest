@@ -48,13 +48,17 @@ func Config(props cntest.PropertyMap) func(*cntest.Container) error {
 		cnt.AddAllEnv(env)
 		cnt.WithImage("postgres")
 		cnt.SetAppPort("5432")
-		if sqlPath, ok := props["sql"]; ok {
-			cnt.AddPathMap(cntest.HostPath(sqlPath), cntest.ContainerPath("/docker-entrypoint-initdb.d"))
+		if sqlPath, ok := props["initdb_path"]; ok {
+			cnt.AddPathMap(cntest.HostPath(sqlPath),
+				cntest.ContainerPath("/docker-entrypoint-initdb.d"))
 		}
 		cnt.DBConnect = func(timeoutSeconds int) (*sql.DB, error) {
-			connStr := fmt.Sprintf("host=%s port=%s user=%s "+
-				"password=%s dbname=%s sslmode=disable",
-				chk(cnt.IPAddress()), cnt.Port(), dbUser, dbPass, dbName)
+			connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+				dbUser,
+				dbPass,
+				"127.0.0.1",
+				cnt.HostPort(),
+				dbName)
 			db, err := sql.Open(driver, connStr)
 
 			// if there is an error opening the connection, handle it
@@ -77,7 +81,10 @@ func Config(props cntest.PropertyMap) func(*cntest.Container) error {
 				if strings.Contains(err.Error(), "connection refused") {
 					return false, nil
 				}
-				fmt.Printf("Error %v\n", err)
+				if strings.Contains(err.Error(), "EOF") {
+					return false, nil
+				}
+				fmt.Printf("Error %v\n%s\n", err, err.Error())
 				return false, err
 			}
 			defer db.Close()

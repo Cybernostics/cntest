@@ -242,6 +242,12 @@ func PullImage(image string, version string, getRepoFn ImageRefFn) {
 }
 
 // SetName container name
+func (c *Container) HostPort() string {
+	var binding = c.HostConfig.PortBindings[c.containerPort.Nat()]
+	return binding[0].HostPort
+}
+
+// SetName container name
 func (c *Container) SetName(name string) {
 	c.name = name
 }
@@ -287,9 +293,6 @@ func (c *Container) AddPortMap(host HostPort, container ContainerPort) {
 func (c *Container) addPortBinding(portMap PortMap) {
 	if c.HostConfig.PortBindings == nil {
 		c.HostConfig.PortBindings = make(nat.PortMap)
-	}
-	if portMap.Host == NOPORT {
-
 	}
 	portMap.AddTo(c.HostConfig.PortBindings)
 }

@@ -14,7 +14,7 @@ func ExecuteWithRunningContainer(t *testing.T, c *Container, userTestFn Containe
 	containerID, err := c.Start()
 	defer func() {
 		if err := recover(); err != nil {
-			fmt.Printf("Panic within ExecuteWithRunningDB. Error was: %v", err)
+			fmt.Printf("Panic within ExecuteWithRunningContainer. Error was: %v", err)
 			c.Stop(0)
 			c.Remove()
 		}
