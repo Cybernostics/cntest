@@ -20,7 +20,6 @@ configure them, and also this means that you can spin up multiple db hosts for e
 ```golang
 // from examples/mysql_test.go
 
-let generateProject = project => {
   func TestMysqlRunWith(t *testing.T) {
 
 	// This sets up a mysql db server with all the bits randomised
@@ -42,7 +41,6 @@ let generateProject = project => {
 		// Use sql.db in your tests 
 
 	})
-}
 ```
 
 See more examples/ for examples of tests for 
