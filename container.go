@@ -326,7 +326,7 @@ func (c *Container) Start() (string, error) {
 		context.Background(),
 		c.Config,
 		c.HostConfig,
-		nil, c.name)
+		nil,c.name)
 
 	if err != nil {
 		return "", err
@@ -371,21 +371,19 @@ func (c *Container) LogsMatch(pattern string) func() (bool, error) {
 			Details:    true,
 			ShowStderr: true,
 			ShowStdout: true,
-			Until:      "all",
 		}
 
-		if logsReader, err := API().ContainerLogs(context.Background(), c.Instance.ID, logsOptions); err != nil {
+		if logsReader, err := API().ContainerLogs(context.Background(), c.Instance.ID, logsOptions); err == nil {
 			bufferedLogs := bufio.NewReader(logsReader)
 			defer logsReader.Close()
 			for {
 				line, error := bufferedLogs.ReadString('\n')
-				fmt.Printf("%s:%s", c.name, line)
 				if error == io.EOF {
 					break
 				} else if error != nil {
 					return false, nil
 				}
-				if logPattern.MatchString(line) {
+				if logPattern.FindString(line)!="" {
 					return true, nil
 				}
 			}

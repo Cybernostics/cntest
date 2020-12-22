@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -49,6 +50,10 @@ func Config(props cntest.PropertyMap) func(*cntest.Container) error {
 		cnt.WithImage("postgres")
 		cnt.SetAppPort("5432")
 		if sqlPath, ok := props["initdb_path"]; ok {
+			if _, err := os.Stat(sqlPath); os.IsNotExist(err) {
+				// path/to/whatever does not exist
+				return fmt.Errorf("initdb_path does not exist. This should point to the db init scripts")
+			}
 			cnt.AddPathMap(cntest.HostPath(sqlPath),
 				cntest.ContainerPath("/docker-entrypoint-initdb.d"))
 		}
@@ -75,20 +80,43 @@ func Config(props cntest.PropertyMap) func(*cntest.Container) error {
 			}
 			return db, nil
 		}
+
+		dbOKFn1 := cnt.LogsMatch("received fast shutdown request")
+		dbOKFn2 := cnt.LogsMatch("database system is ready to accept connections")
+
 		cnt.ContainerReady = func() (bool, error) {
+			fmt.Printf("Attempting to connect to DB...")
 			db, err := cnt.DBConnect(1)
 			if err != nil {
-				if strings.Contains(err.Error(), "connection refused") {
+				if strings.Contains(err.Error(), "connection refused") || strings.Contains(err.Error(), "connection reset by peer") {
+					fmt.Printf("Connection refused\n")
 					return false, nil
 				}
 				if strings.Contains(err.Error(), "EOF") {
+					fmt.Printf("EOF\n")
 					return false, nil
 				}
 				fmt.Printf("Error %v\n%s\n", err, err.Error())
 				return false, err
 			}
 			defer db.Close()
-			return true, nil
+
+			fmt.Printf("Cheking logs...\n")
+			matches, err := dbOKFn1()
+			if err != nil {
+				fmt.Printf("not matched required log\n")
+				return false, err
+			}
+			if matches {
+				matches, err = dbOKFn2()
+				if err != nil {
+					fmt.Printf("not matched required log\n")
+					return false, err
+				}
+
+			}
+			fmt.Printf("Container reachable\n")
+			return matches, nil
 		}
 		return nil
 	}

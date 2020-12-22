@@ -13,13 +13,6 @@ func ExecuteWithRunningContainer(t *testing.T, c *Container, userTestFn Containe
 	isOk := false
 	containerID, err := c.Start()
 	defer func() {
-		if err := recover(); err != nil {
-			fmt.Printf("Panic within ExecuteWithRunningContainer. Error was: %v", err)
-			c.Stop(0)
-			c.Remove()
-		}
-	}()
-	defer func() {
 		if !isOk {
 			t.Errorf("Failed to run container.")
 			logsStr, err := c.Logs()
@@ -30,11 +23,18 @@ func ExecuteWithRunningContainer(t *testing.T, c *Container, userTestFn Containe
 			c.Remove()
 		}
 	}()
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Printf("Panic within ExecuteWithRunningContainer. Error was: %v", err)
+			c.Stop(0)
+			c.Remove()
+		}
+	}()
 	if err != nil {
 		t.Fatalf("Couldn't start container %v", err)
 		return
 	}
-	fmt.Printf("Started %s\n", containerID)
+	fmt.Printf("Started %s - Awaiting ready\n", containerID)
 	if ok, err := c.AwaitIsReady(); !ok {
 		defer c.Stop(10)
 		defer c.Remove()
@@ -57,6 +57,9 @@ func ExecuteWithRunningContainer(t *testing.T, c *Container, userTestFn Containe
 			}
 		}()
 	}
-	userTestFn(t, c)
-	isOk = true
+	if ready,err := c.ContainerReady();err==nil && ready{
+		userTestFn(t, c)
+		isOk = true
+
+	}
 }
