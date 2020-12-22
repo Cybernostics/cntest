@@ -326,7 +326,7 @@ func (c *Container) Start() (string, error) {
 		context.Background(),
 		c.Config,
 		c.HostConfig,
-		nil,c.name)
+		nil, nil, c.name)
 
 	if err != nil {
 		return "", err
@@ -383,7 +383,7 @@ func (c *Container) LogsMatch(pattern string) func() (bool, error) {
 				} else if error != nil {
 					return false, nil
 				}
-				if logPattern.FindString(line)!="" {
+				if logPattern.FindString(line) != "" {
 					return true, nil
 				}
 			}
