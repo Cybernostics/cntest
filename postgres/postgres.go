@@ -85,6 +85,14 @@ func Config(props cntest.PropertyMap) func(*cntest.Container) error {
 		dbOKFn2 := cnt.LogsMatch("database system is ready to accept connections")
 
 		cnt.ContainerReady = func() (bool, error) {
+
+			if running, err := cnt.IsRunning(); !running || err != nil {
+				if exited, err := cnt.IsExited(); exited || err != nil {
+					return false, err
+				} else {
+					return false, err
+				}
+			}
 			fmt.Printf("Attempting to connect to DB...")
 			db, err := cnt.DBConnect(1)
 			if err != nil {

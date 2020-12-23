@@ -19,15 +19,23 @@ func ExecuteWithRunningContainer(t *testing.T, c *Container, userTestFn Containe
 			if err != nil {
 				fmt.Printf("Logs were: %s\n", logsStr)
 			}
-			c.Stop(0)
-			c.Remove()
+			if c.StopAfterTest {
+				c.Stop(0)
+			}
+			if c.RemoveAfterTest {
+				c.Remove()
+			}
 		}
 	}()
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Printf("Panic within ExecuteWithRunningContainer. Error was: %v", err)
-			c.Stop(0)
-			c.Remove()
+			if c.StopAfterTest {
+				c.Stop(0)
+			}
+			if c.RemoveAfterTest {
+				c.Remove()
+			}
 		}
 	}()
 	if err != nil {
@@ -36,8 +44,12 @@ func ExecuteWithRunningContainer(t *testing.T, c *Container, userTestFn Containe
 	}
 	fmt.Printf("Started %s - Awaiting ready\n", containerID)
 	if ok, err := c.AwaitIsReady(); !ok {
-		defer c.Stop(10)
-		defer c.Remove()
+		if c.StopAfterTest {
+			defer c.Stop(10)
+		}
+		if c.RemoveAfterTest {
+			defer c.Remove()
+		}
 		if err != nil {
 			t.Errorf("Couldn't start container: %s\n Error was %v", c.Instance.ID, err)
 		}
@@ -57,7 +69,7 @@ func ExecuteWithRunningContainer(t *testing.T, c *Container, userTestFn Containe
 			}
 		}()
 	}
-	if ready,err := c.ContainerReady();err==nil && ready{
+	if ready, err := c.ContainerReady(); err == nil && ready {
 		userTestFn(t, c)
 		isOk = true
 
