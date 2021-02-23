@@ -13,6 +13,8 @@ import (
 
 func TestMysqlRunWith(t *testing.T) {
 
+	cntest.PullImage("mysql", "8", cntest.FromDockerHub)
+
 	// This sets up a mysql db server with all the bits randomised
 	// you can access them via cnt.Props map. see mysql.Container() method for details.
 	cnt := mysql.Container(cntest.PropertyMap{"initdb_path": "../fixtures/testschema"})

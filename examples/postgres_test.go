@@ -12,8 +12,8 @@ import (
 )
 
 func TestPostgresRunWith(t *testing.T) {
+	cntest.PullImage("postgres", "11", cntest.FromDockerHub)
 	cnt := postgres.Container(cntest.PropertyMap{"initdb_path": "../fixtures/testschema"})
-
 	cntest.ExecuteWithRunningContainer(t, cnt, func(t *testing.T, c *cntest.Container) {
 
 		// Open up our database connection.

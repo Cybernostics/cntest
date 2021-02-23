@@ -47,7 +47,7 @@ func Config(props cntest.PropertyMap) func(*cntest.Container) error {
 	return func(cnt *cntest.Container) error {
 		cnt.Props.SetAll(props)
 		cnt.AddAllEnv(env)
-		cnt.WithImage("mysql")
+		cnt.WithImage("mysql:8")
 		cnt.SetAppPort("3306")
 		if sqlPath, ok := props["initdb_path"]; ok {
 			cnt.AddPathMap(cntest.HostPath(sqlPath), cntest.ContainerPath("/docker-entrypoint-initdb.d"))

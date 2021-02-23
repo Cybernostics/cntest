@@ -202,7 +202,7 @@ func FromDockerHub(image string, version string) string {
 	if version == "" {
 		version = "latest"
 	}
-	return fmt.Sprintf("cntest.io/library/%s:%s", image, version)
+	return fmt.Sprintf("%s:%s", image, version)
 }
 
 // ContainerConfigFn custom function that configures a container
@@ -234,6 +234,16 @@ func ContainerWith(fn ContainerConfigFn) *Container {
 
 // PullImage like docker pull cmd
 func PullImage(image string, version string, getRepoFn ImageRefFn) {
+	images, err := API().ImageList(context.Background(), types.ImageListOptions{})
+	toFind := fmt.Sprintf("%s:%s", image, version)
+	for _, image := range images {
+		for _, tags := range image.RepoTags {
+			if tags == toFind {
+				fmt.Printf("Found %s in local store - skipping pull\n", toFind)
+				return
+			}
+		}
+	}
 	reader, err := API().ImagePull(context.Background(), getRepoFn(image, version), types.ImagePullOptions{})
 	if err != nil {
 		panic(err)
@@ -241,7 +251,7 @@ func PullImage(image string, version string, getRepoFn ImageRefFn) {
 	io.Copy(os.Stdout, reader)
 }
 
-// SetName container name
+// HostPort get the host port
 func (c *Container) HostPort() string {
 	var binding = c.HostConfig.PortBindings[c.containerPort.Nat()]
 	return binding[0].HostPort
@@ -581,7 +591,8 @@ func (c *Container) IsExited() (started bool, err error) {
 // WithImage sets the image name and the default container name prefix
 func (c *Container) WithImage(image string) *Container {
 	c.Config.Image = image
-	c.NamePrefix = image
+	parts := strings.Split(image, ":")
+	c.NamePrefix = parts[0]
 	return c
 }
 
