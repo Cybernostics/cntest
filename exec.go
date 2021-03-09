@@ -6,7 +6,7 @@ import (
 )
 
 // ContainerTestFn implement your DB tests using this signature
-type ContainerTestFn func(t *testing.T, config *Container)
+type ContainerTestFn func(t *testing.T)
 
 // ExecuteWithRunningContainer wraps a test function by creating a db
 func ExecuteWithRunningContainer(t *testing.T, c *Container, userTestFn ContainerTestFn) {
@@ -70,7 +70,7 @@ func ExecuteWithRunningContainer(t *testing.T, c *Container, userTestFn Containe
 		}()
 	}
 	if ready, err := c.ContainerReady(); err == nil && ready {
-		userTestFn(t, c)
+		userTestFn(t)
 		isOk = true
 
 	}

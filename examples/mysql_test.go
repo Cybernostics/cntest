@@ -20,9 +20,9 @@ func TestMysqlRunWith(t *testing.T) {
 	cnt := mysql.Container(cntest.PropertyMap{"initdb_path": "../fixtures/testschema"})
 
 	// This wrapper method ensures the container is cleaned up after the test is done
-	cntest.ExecuteWithRunningContainer(t, cnt, func(t *testing.T, c *cntest.Container) {
+	cntest.ExecuteWithRunningContainer(t, cnt, func(t *testing.T) {
 		// Open up our database connection.
-		db, err := c.DBConnect(c.MaxStartTimeSeconds)
+		db, err := cnt.DBConnect(cnt.MaxStartTimeSeconds)
 		assertThat(t, err, is.Nil())
 		defer db.Close()
 
@@ -31,7 +31,7 @@ func TestMysqlRunWith(t *testing.T) {
 		assertThat(t, err, is.Nil())
 
 		// Test some db code
-		dbx := sqlx.NewDb(db, c.Props["driver"])
+		dbx := sqlx.NewDb(db, cnt.Props["driver"])
 
 		store := AgentStore{dbx}
 		agents, err := store.GetAgents()
