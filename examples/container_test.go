@@ -9,7 +9,7 @@ import (
 )
 
 func TestContainer(t *testing.T) {
-	cnt := cntest.NewContainer().WithImage("hello-world")
+	cnt := cntest.NewContainer().WithImage("hello-world:latest")
 	name, err := cnt.Start()
 	defer cnt.Remove()
 	assertThat(t, err, is.Nil())
