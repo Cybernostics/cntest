@@ -6,6 +6,12 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/mount"
+	"github.com/docker/docker/client"
+	"github.com/docker/go-connections/nat"
+
 	"io"
 	"net"
 	"os"
@@ -16,11 +22,6 @@ import (
 
 	"github.com/cybernostics/cntest/random"
 	"github.com/cybernostics/cntest/wait"
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/mount"
-	"github.com/docker/docker/client"
-	"github.com/docker/go-connections/nat"
 )
 
 var api *client.Client
@@ -103,11 +104,11 @@ func (v *VolumeMount) Mount() mount.Mount {
 	}
 }
 
-//ImageRefFn This function type provides a hook to generate a custom docker repo path if needed
+// ImageRefFn This function type provides a hook to generate a custom docker repo path if needed
 // You only need this if you're not using the standard docker registry
 type ImageRefFn func(image string, version string) string
 
-//API returns current API client or creates on first call
+// API returns current API client or creates on first call
 func API() *client.Client {
 	if api != nil {
 		return api
@@ -125,7 +126,7 @@ func API() *client.Client {
 // eg They could include db username/password for a db type container
 type PropertyMap map[string]string
 
-//Container a simplified API over the docker client API
+// Container a simplified API over the docker client API
 type Container struct {
 
 	// Props are metadata for a container type. eg dbusername for a db container
@@ -140,7 +141,7 @@ type Container struct {
 	HostConfig *container.HostConfig
 
 	// Instance Once the container is started this has all the instance data
-	Instance container.ContainerCreateCreatedBody
+	Instance container.CreateResponse
 
 	// GetImageRepoSource Overload this if you want to get images from a different repo
 	GetImageRepoSource ImageRefFn `json:"-,"`
@@ -511,7 +512,11 @@ func (c *Container) Check(timeoutSeconds int) (ret bool, err error) {
 
 // Stop stops the container
 func (c *Container) Stop(timeoutSeconds int) (ok bool, err error) {
-	err = API().ContainerStop(context.Background(), c.Instance.ID, nil)
+	timeout := 30
+	err = API().ContainerStop(context.Background(), c.Instance.ID, container.StopOptions{
+		Signal:  "SIGKILL",
+		Timeout: &timeout,
+	})
 	if err != nil {
 		return
 	}
@@ -576,7 +581,7 @@ func (c *Container) IsRunning() (started bool, err error) {
 	return false, nil
 }
 
-//IsExited returns true if the container has exited
+// IsExited returns true if the container has exited
 func (c *Container) IsExited() (started bool, err error) {
 	inspect, err := API().ContainerInspect(context.Background(), c.Instance.ID)
 	if err != nil {
