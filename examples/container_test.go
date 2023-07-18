@@ -2,6 +2,7 @@ package examples
 
 import (
 	"fmt"
+	"github.com/corbym/gocrest/then"
 	"testing"
 
 	"github.com/corbym/gocrest/is"
@@ -12,14 +13,14 @@ func TestContainer(t *testing.T) {
 	cnt := cntest.NewContainer().WithImage("hello-world:latest")
 	name, err := cnt.Start()
 	defer cnt.Remove()
-	assertThat(t, err, is.Nil())
-	assertThat(t, len(name), is.GreaterThan(0))
+	then.AssertThat(t, err, is.Nil())
+	then.AssertThat(t, len(name), is.GreaterThan(0))
 	ok, err := cnt.AwaitExit(10)
-	assertThat(t, err, is.Nil())
-	assertThat(t, ok, is.True())
+	then.AssertThat(t, err, is.Nil())
+	then.AssertThat(t, ok, is.True())
 	logs, err := cnt.Logs()
-	assertThat(t, err, is.Nil())
-	assertThat(t, len(logs), is.GreaterThan(0))
+	then.AssertThat(t, err, is.Nil())
+	then.AssertThat(t, len(logs), is.GreaterThan(0))
 	fmt.Printf("Logs %s\n", logs)
 
 }

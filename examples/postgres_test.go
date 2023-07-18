@@ -2,6 +2,7 @@ package examples
 
 import (
 	"fmt"
+	"github.com/corbym/gocrest/then"
 	"testing"
 
 	// import these to test a postgres container
@@ -19,18 +20,18 @@ func TestPostgresRunWith(t *testing.T) {
 
 		// Open up our database connection.
 		db, err := cnt.DBConnect(cnt.MaxStartTimeSeconds)
-		assertThat(t, err, is.Nil())
+		then.AssertThat(t, err, is.Nil())
 		defer db.Close()
 
 		err = db.Ping()
-		assertThat(t, err, is.Nil())
+		then.AssertThat(t, err, is.Nil())
 
 		// Test some db code
 		dbx := sqlx.NewDb(db, cnt.Props["driver"])
 
 		store := AgentStore{dbx}
 		agents, err := store.GetAgents()
-		assertThat(t, err, is.Nil())
+		then.AssertThat(t, err, is.Nil())
 
 		for _, agent := range agents {
 			fmt.Printf("%v\n", agent)

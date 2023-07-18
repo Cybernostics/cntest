@@ -110,6 +110,11 @@ type ImageRefFn func(image string, version string) string
 
 // API returns current API client or creates on first call
 func API() *client.Client {
+
+	version := os.Getenv("DOCKER_API_VERSION")
+	if len(version) == 0 {
+		os.Setenv("DOCKER_API_VERSION", "1.42")
+	}
 	if api != nil {
 		return api
 	}
