@@ -1,6 +1,6 @@
 module github.com/cybernostics/cntest
 
-go 1.20
+go 1.21
 
 require (
 	github.com/corbym/gocrest v1.1.1
