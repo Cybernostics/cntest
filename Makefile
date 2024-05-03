@@ -131,3 +131,6 @@ generate:
 build:
 	$(GO) build $(pkgs)
 
+test: build
+	$(GO) test $(pkgs)
+

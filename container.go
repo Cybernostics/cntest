@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"
@@ -349,7 +350,7 @@ func (c *Container) Start() (string, error) {
 	}
 
 	c.Instance = instance
-	err = API().ContainerStart(context.Background(), c.Instance.ID, types.ContainerStartOptions{})
+	err = API().ContainerStart(context.Background(), c.Instance.ID, container.StartOptions{})
 	if err != nil {
 		return "", err
 	}
@@ -383,7 +384,7 @@ func (c *Container) ContainerName() string {
 func (c *Container) LogsMatch(pattern string) func() (bool, error) {
 	var logPattern = regexp.MustCompile(pattern)
 	return func() (bool, error) {
-		logsOptions := types.ContainerLogsOptions{
+		logsOptions := container.LogsOptions{
 			Details:    true,
 			ShowStderr: true,
 			ShowStdout: true,
@@ -412,7 +413,7 @@ func (c *Container) LogsMatch(pattern string) func() (bool, error) {
 // Logs returns the container logs as a string or error
 func (c *Container) Logs() (string, error) {
 
-	logsOptions := types.ContainerLogsOptions{
+	logsOptions := container.LogsOptions{
 		Details:    true,
 		ShowStderr: true,
 		ShowStdout: true,
@@ -560,7 +561,7 @@ func (c *Container) RunCmd(cmd []string) (io.Reader, error) {
 
 // Remove deletes the container permanently
 func (c *Container) Remove() error {
-	return API().ContainerRemove(context.Background(), c.Instance.ID, types.ContainerRemoveOptions{Force: true})
+	return API().ContainerRemove(context.Background(), c.Instance.ID, container.RemoveOptions{Force: true})
 }
 
 // IsRemoveAfterTest true if the container should be removed
