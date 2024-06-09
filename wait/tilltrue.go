@@ -8,7 +8,7 @@ import (
 // UntilTrue call the fn every 500 millis until it errors, returns or a timeout
 func UntilTrue(timeoutSeconds int, fn func() (bool, error)) (bool, error) {
 	timeout := time.After(time.Duration(timeoutSeconds) * time.Second)
-	tick := time.Tick(500 * time.Millisecond)
+	tick := time.NewTicker(500 * time.Millisecond)
 	// Keep trying until we're timed out or got a result or got an error
 	for {
 		select {
@@ -16,7 +16,7 @@ func UntilTrue(timeoutSeconds int, fn func() (bool, error)) (bool, error) {
 		case <-timeout:
 			return false, errors.New("timed out")
 		// Got a tick, we should check on doSomething()
-		case <-tick:
+		case <-tick.C:
 			result, err := fn()
 			if err != nil {
 				return false, err

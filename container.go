@@ -9,6 +9,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
@@ -76,10 +77,10 @@ func (p HostPort) Binding() nat.PortBinding {
 	port := p
 	if port == NOPORT {
 		listener, err := net.Listen("tcp", ":0")
-		defer listener.Close()
 		if err != nil {
 			panic(err)
 		}
+		defer listener.Close()
 
 		port = HostPort(fmt.Sprintf("%d", listener.Addr().(*net.TCPAddr).Port))
 	}
@@ -119,7 +120,7 @@ func API() *client.Client {
 	if api != nil {
 		return api
 	}
-	api, err := client.NewEnvClient()
+	api, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		fmt.Println("Unable to create docker client")
 		panic(err)
@@ -156,8 +157,8 @@ type Container struct {
 	StopAfterTest bool
 	// RemoveAfterTest remove the container after the test
 	RemoveAfterTest bool
-	// The docker image to use for the container
-	dockerImage string
+	// // The docker image to use for the container
+	// dockerImage string
 	// The Maximum time to wait for the container
 	MaxStartTimeSeconds int
 	// The name of the running container
@@ -166,19 +167,17 @@ type Container struct {
 	// NamePrefix is combined with a random suffix to create the containerName
 	// if the name is blank when the container is started
 	NamePrefix string
-	// The environment
-	environment map[string]string
 	// The IP address of the container
 	iP string
 
 	// ContainerReady Override this if you want to check more than an ok response to a TCP connect
-	ContainerReady ContainerReadyFn `json:"-,"`
+	ContainerReady ContainerReadyFn
 
 	// TCPConnect fn to connect to a TCP connection
-	TCPConnect TCPConnectFn `json:"-,"`
+	TCPConnect TCPConnectFn
 
 	// DBConnect fn to connect to a DB connection
-	DBConnect DBConnectFn `json:"-,"`
+	DBConnect DBConnectFn
 }
 
 // SetIfMissing sets the value if it isn't already
@@ -235,14 +234,21 @@ func NewContainer() *Container {
 // ContainerWith contstructor which takes a custom configurer
 func ContainerWith(fn ContainerConfigFn) *Container {
 	cnt := NewContainer()
-	fn(cnt)
+
+	err := fn(cnt)
+	if err != nil {
+		return nil
+	}
 	return cnt
 }
 
 // PullImage like docker pull cmd
-func PullImage(image string, version string, getRepoFn ImageRefFn) {
-	images, err := API().ImageList(context.Background(), types.ImageListOptions{})
-	toFind := fmt.Sprintf("%s:%s", image, version)
+func PullImage(img string, version string, getRepoFn ImageRefFn) {
+		images, err := API().ImageList(context.Background(), image.ListOptions{})
+	if err != nil {
+		panic(err)
+	}
+	toFind := fmt.Sprintf("%s:%s", img, version)
 	for _, image := range images {
 		for _, tags := range image.RepoTags {
 			if tags == toFind {
@@ -251,11 +257,32 @@ func PullImage(image string, version string, getRepoFn ImageRefFn) {
 			}
 		}
 	}
-	reader, err := API().ImagePull(context.Background(), getRepoFn(image, version), types.ImagePullOptions{})
+	reader, err := API().ImagePull(context.Background(), getRepoFn(img, version), image.PullOptions{})
 	if err != nil {
 		panic(err)
 	}
-	io.Copy(os.Stdout, reader)
+	_, err2 := io.Copy(os.Stdout, reader)
+	if err2 != nil {
+		_, _ = fmt.Printf("error copying image %v: %v", img, err2)
+	}
+}
+
+func FindContainer(name string) *Container {
+	containers, err := API().ContainerList(context.Background(), container.ListOptions{All: true,})
+	if err != nil {
+		return nil
+	}
+	for _, c := range containers {
+		for _, v := range c.Names {
+			if v[1:] == name {
+
+				cnt := NewContainer()
+				cnt.Instance = container.CreateResponse{ID: c.ID}
+				return cnt
+			}
+		}
+	}
+	return nil
 }
 
 // HostPort get the host port
@@ -492,14 +519,13 @@ func (c *Container) ConnectTCP(timeoutSeconds int) (net.Conn, error) {
 	} else {
 		timeout = time.Duration(timeoutSeconds) * time.Minute
 	}
-	for {
-		var conn net.Conn
-		conn, err = net.DialTimeout("tcp", host, timeout)
-		if err != nil {
-			return nil, err
-		}
-		return conn, nil
+	var conn net.Conn
+	conn, err = net.DialTimeout("tcp", host, timeout)
+	if err != nil {
+		return nil, err
 	}
+
+	return conn, nil
 
 }
 

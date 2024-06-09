@@ -30,6 +30,7 @@ func Container(props cntest.PropertyMap) *cntest.Container {
 // cntest.NewContainer(mysql.Config({db:"mydb",sqlFolder:"./testdb",user:"bob"}))
 func Config(props cntest.PropertyMap) func(*cntest.Container) error {
 	driver := "postgres"
+	image  := props.GetOrDefault("image","postgres:13")
 	props["driver"] = driver
 	dbName := props.GetOrDefault("db", random.Name())
 	props["db"] = dbName
@@ -47,7 +48,7 @@ func Config(props cntest.PropertyMap) func(*cntest.Container) error {
 	return func(cnt *cntest.Container) error {
 		cnt.Props.SetAll(props)
 		cnt.AddAllEnv(env)
-		cnt.WithImage("postgres")
+		cnt.WithImage(image)
 		cnt.SetAppPort("5432")
 		if sqlPath, ok := props["initdb_path"]; ok {
 			if _, err := os.Stat(sqlPath); os.IsNotExist(err) {
@@ -128,11 +129,4 @@ func Config(props cntest.PropertyMap) func(*cntest.Container) error {
 		}
 		return nil
 	}
-}
-
-func chk(val string, err error) string {
-	if err != nil {
-		panic(err)
-	}
-	return val
 }

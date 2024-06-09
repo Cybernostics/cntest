@@ -1,0 +1,23 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  lint:
+    cmds:
+      - go run github.com/golangci/golangci-lint/cmd/golangci-lint@latest  -vvv run ./...
+  compile:
+    deps:
+      - lint
+    cmds:
+      - go build ./...
+  test:
+    deps:
+      - compile
+    cmds:
+      - go test ./...
+  build:
+    deps:
+      - test
+      
+

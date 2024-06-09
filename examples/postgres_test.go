@@ -13,9 +13,11 @@ import (
 )
 
 func TestPostgresRunWith(t *testing.T) {
-	cntest.PullImage("postgres", "11", cntest.FromDockerHub)
-	cnt := postgres.Container(cntest.PropertyMap{"initdb_path": "../fixtures/testschema"}).
-		WithImage("postgres:11")
+	cntest.PullImage("postgres", "13", cntest.FromDockerHub)
+	cnt := postgres.Container(cntest.PropertyMap{"initdb_path": "../fixtures/testschema"})
+	cnt.RemoveAfterTest=false
+	cnt.StopAfterTest=false
+	
 	cntest.ExecuteWithRunningContainer(t, cnt, func(t *testing.T) {
 
 		// Open up our database connection.
@@ -34,7 +36,7 @@ func TestPostgresRunWith(t *testing.T) {
 		then.AssertThat(t, err, is.Nil())
 
 		for _, agent := range agents {
-			fmt.Printf("%v\n", agent)
+			fmt.Printf("%v yo\n", agent)
 		}
 	})
 }

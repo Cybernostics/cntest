@@ -17,10 +17,11 @@ import (
 
 // Container creates a mysql opinionated container with defaults overridden by the
 // supplied props for:
-// 		db - name of the database. defaults to random
-// 		dbuser - user name for the database. defaults to random
-// 		dbpass - user password for the database. defaults to random
-// 		initdb_path - folder containing sh and sql files executed in lexical order when the container db starts
+//
+//	db - name of the database. defaults to random
+//	dbuser - user name for the database. defaults to random
+//	dbpass - user password for the database. defaults to random
+//	initdb_path - folder containing sh and sql files executed in lexical order when the container db starts
 func Container(props cntest.PropertyMap) *cntest.Container {
 	return cntest.ContainerWith(Config(props))
 }
@@ -91,11 +92,4 @@ func Config(props cntest.PropertyMap) func(*cntest.Container) error {
 		}
 		return nil
 	}
-}
-
-func chk(val string, err error) string {
-	if err != nil {
-		panic(err)
-	}
-	return val
 }

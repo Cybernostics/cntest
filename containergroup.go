@@ -1,5 +1,7 @@
 package cntest
 
+import "fmt"
+
 // GroupedContainer container object
 // tracks containers on which this depends
 type GroupedContainer struct {
@@ -26,10 +28,6 @@ func (cg ContainerGroup) Add(cnt *GroupedContainer) {
 	cg[cnt.Container.name] = cnt
 }
 
-func (gc *GroupedContainer) getDoneChannel() chan<- bool {
-	return gc.started
-}
-
 // Start starts all the containers
 func (cg ContainerGroup) Start() {
 	for _, container := range cg {
@@ -49,9 +47,17 @@ func (gc *GroupedContainer) Start() {
 	for _, depend := range gc.dependsOn {
 		depend.Await()
 	}
-	gc.Container.Start()
-	gc.Container.AwaitIsReady()
-	gc.SignalStarted()
+	_, err := gc.Container.Start()
+	if err != nil {
+		_, _ = fmt.Printf("Error starting container %v: %v", gc.Container, err)
+	}
+	started, err := gc.Container.AwaitIsReady()
+	if err != nil {
+		_, _ = fmt.Printf("Error starting container %v: %v", gc.Container, err)
+	}
+	if started {
+		gc.SignalStarted()
+	}
 }
 
 // SignalStarted signals

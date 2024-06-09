@@ -2,6 +2,7 @@ package cntest
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -20,10 +21,10 @@ func ExecuteWithRunningContainer(t *testing.T, c *Container, userTestFn Containe
 				fmt.Printf("Logs were: %s\n", logsStr)
 			}
 			if c.StopAfterTest {
-				c.Stop(0)
+				_, _ = c.Stop(0)
 			}
 			if c.RemoveAfterTest {
-				c.Remove()
+				_ = c.Remove()
 			}
 		}
 	}()
@@ -31,10 +32,10 @@ func ExecuteWithRunningContainer(t *testing.T, c *Container, userTestFn Containe
 		if err := recover(); err != nil {
 			fmt.Printf("Panic within ExecuteWithRunningContainer. Error was: %v", err)
 			if c.StopAfterTest {
-				c.Stop(0)
+				_, _ = c.Stop(0)
 			}
 			if c.RemoveAfterTest {
-				c.Remove()
+				_ = c.Remove()
 			}
 		}
 	}()
@@ -45,10 +46,14 @@ func ExecuteWithRunningContainer(t *testing.T, c *Container, userTestFn Containe
 	fmt.Printf("Started %s - Awaiting ready\n", containerID)
 	if ok, err := c.AwaitIsReady(); !ok {
 		if c.StopAfterTest {
-			defer c.Stop(10)
+			defer func() {
+				_, _ = c.Stop(10)
+			}()
 		}
 		if c.RemoveAfterTest {
-			defer c.Remove()
+			defer func() {
+				_ = c.Remove()
+			}()
 		}
 		if err != nil {
 			t.Errorf("Couldn't start container: %s\n Error was %v", c.Instance.ID, err)
@@ -58,14 +63,18 @@ func ExecuteWithRunningContainer(t *testing.T, c *Container, userTestFn Containe
 		defer func() {
 			_, err := c.Stop(10)
 			if err != nil {
-				t.Errorf("Couldn't stop container: %s\n Error was %v", c.Instance.ID, err)
+				if !strings.Contains(err.Error(),"No such container"){
+					t.Errorf("Couldn't stop container: %s\n Error was %v", c.Instance.ID, err)
+				}
 			}
 
 			if c.IsRemoveAfterTest() {
 				err = c.Remove()
 				if err != nil {
-					t.Errorf("Couldn't stop container: %s\n Error was %v", c.Instance.ID, err)
-				}
+					if !strings.Contains(err.Error(),"No such container"){
+						t.Errorf("Couldn't remove container: %s\n Error was %v", c.Instance.ID, err)
+					}
+					}
 			}
 		}()
 	}
